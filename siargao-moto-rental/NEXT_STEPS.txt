@@ -1,0 +1,124 @@
+================================================================================
+  SIARGAO MOTO RENTAL - NEXT STEPS
+================================================================================
+
+Great! You've already run the database migrations. Here's what to do next:
+
+================================================================================
+STEP 1: CREATE ADMIN USER (5 minutes)
+================================================================================
+
+1.1 Go to Supabase Dashboard:
+    https://supabase.com/dashboard/project/ihllxghuehfeqkpqlvpm/auth/users
+
+1.2 Click "Add user" > "Create new user"
+
+1.3 Enter:
+    Email: admin@siargao-moto.com
+    Password: Admin123!
+
+1.4 Click "Create user"
+
+1.5 COPY THE USER ID (looks like: a1b2c3d4-e5f6-7890-abcd-ef1234567890)
+
+1.6 Go to SQL Editor:
+    https://supabase.com/dashboard/project/ihllxghuehfeqkpqlvpm/sql
+
+1.7 Run this SQL (replace YOUR_USER_ID_HERE):
+
+    INSERT INTO admins (id, email, full_name, role)
+    VALUES ('YOUR_USER_ID_HERE', 'admin@siargao-moto.com', 'Admin User', 'admin');
+
+================================================================================
+STEP 2: INSTALL AND RUN (2 minutes)
+================================================================================
+
+OPTION A: Double-click this file (EASIEST):
+    install-and-run.bat
+
+OPTION B: Use Command Prompt:
+    1. Press Win + R
+    2. Type: cmd
+    3. Press Enter
+    4. Run these commands:
+       cd "C:\FINALS IT382\siargao-moto-rental"
+       npm install
+       npm run dev
+
+================================================================================
+STEP 3: LOGIN AND TEST (1 minute)
+================================================================================
+
+1. Open browser: http://localhost:3000
+
+2. Login with:
+   Email: admin@siargao-moto.com
+   Password: Admin123!
+
+3. You should see the dashboard with sample data!
+
+================================================================================
+WHAT YOU'LL SEE
+================================================================================
+
+Dashboard Statistics:
+- Total Motorbikes: 5
+- Available: 5
+- Active Rentals: 0
+- Active Employees: 3
+
+Sample Data:
+- 5 Motorbikes (Honda, Yamaha, Suzuki, Kawasaki)
+- 3 Customers (John Doe, Jane Smith, Mike Johnson)
+- 3 Employees (Maria Santos, Pedro Cruz, Ana Reyes)
+
+Features:
+- Motorbike Management
+- Rental Management
+- Employee Management
+- Payroll Management
+- Interactive Map
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: PowerShell script execution error
+Solution: Use Command Prompt (cmd) instead of PowerShell
+          OR double-click install-and-run.bat
+
+Problem: Can't login
+Solution: Make sure you created the admin record in Step 1.7
+          Verify the user ID matches
+
+Problem: Port 3000 in use
+Solution: Close other applications using port 3000
+          OR use: set PORT=3001 && npm run dev
+
+================================================================================
+QUICK FILES REFERENCE
+================================================================================
+
+- START_HERE.md          - Detailed next steps guide
+- install-and-run.bat    - One-click install and run
+- run-dev.bat            - Quick start (after install)
+- README.md              - Complete documentation
+- DEPLOYMENT.md          - Deploy to production
+
+================================================================================
+SUPPORT
+================================================================================
+
+All documentation is in the project folder.
+Check START_HERE.md for detailed instructions and troubleshooting.
+
+================================================================================
+READY TO START?
+================================================================================
+
+1. Create admin user (Step 1 above)
+2. Double-click: install-and-run.bat
+3. Open: http://localhost:3000
+4. Login and enjoy!
+
+================================================================================

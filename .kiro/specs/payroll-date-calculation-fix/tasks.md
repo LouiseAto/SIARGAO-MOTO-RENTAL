@@ -1,0 +1,109 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Bug Condition** - Auto-Calculate on Date Change
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the bug exists
+  - **Scoped PBT Approach**: For deterministic bugs, scope the property to the concrete failing case(s) to ensure reproducibility
+  - Test that when the modal opens with default dates (Jan 1 - Jan 31), hours_worked is 0 and base_amount is 0 or monthly_salary (not calculated based on 31 days)
+  - Test that when Period End changes from Jan 31 to Jan 15, salary totals remain unchanged (not recalculated to 15 days)
+  - Test that when Period Start changes from Jan 1 to Jan 10, salary totals remain unchanged (not recalculated to 22 days)
+  - Test that when both dates are set to the same day (Jan 15 - Jan 15), salary does not calculate for 1 day
+  - The test assertions should match the Expected Behavior Properties from design: hours_worked should be (days × 8), base_amount should be (hourly_rate × hours_worked), total_amount should be (base_amount + bonuses - deductions)
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS (this is correct - it proves the bug exists)
+  - Document counterexamples found to understand root cause (e.g., "Modal opens with hours_worked=0 instead of 248 hours for 31-day period")
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 1.1, 1.2, 1.3, 1.4_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Manual Field Changes
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for manual field changes (hours_worked, hourly_rate, bonuses, deductions)
+  - Observe: Manually changing hours_worked field recalculates base_amount as (hourly_rate × hours_worked) and updates total_amount
+  - Observe: Manually changing hourly_rate field recalculates base_amount as (hourly_rate × hours_worked) and updates total_amount
+  - Observe: Manually changing bonuses field recalculates total_amount as (base_amount + bonuses - deductions)
+  - Observe: Manually changing deductions field recalculates total_amount as (base_amount + bonuses - deductions)
+  - Observe: Employees with monthly_salary set use monthly_salary as initial base_amount instead of hourly calculation
+  - Observe: "Generate Payroll" button creates payroll records for all active employees with calculated values
+  - Write property-based tests capturing observed behavior patterns from Preservation Requirements
+  - Property-based testing generates many test cases for stronger guarantees
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+
+- [x] 3. Fix for payroll date calculation bug
+
+  - [x] 3.1 Add date calculation helper function
+    - Create `calculateDaysBetween(startDate: string, endDate: string): number` function
+    - Parse the two date strings into Date objects
+    - Calculate the difference in milliseconds
+    - Convert to days (inclusive, so Jan 1 - Jan 1 = 1 day)
+    - Handle edge cases: empty dates (return 0), invalid dates (return 0), end before start (return 0)
+    - Return the number of days
+    - _Bug_Condition: isBugCondition(input) where input.action == 'modalOpen' OR input.action == 'dateChange'_
+    - _Expected_Behavior: Calculate days between dates correctly, handle edge cases gracefully_
+    - _Preservation: Does not affect existing manual field change behavior_
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+  - [x] 3.2 Add useEffect hook for date changes
+    - Add `useEffect` hook that depends on `[periodStart, periodEnd, employees]`
+    - Trigger when any of these values change
+    - Calculate days between periodStart and periodEnd using `calculateDaysBetween`
+    - Skip calculation if periodStart or periodEnd is empty
+    - For each employee in payrollData:
+      - Check if employee has monthly_salary set
+      - If monthly_salary exists, skip auto-calculation (preserve monthly_salary behavior)
+      - Otherwise, calculate hours_worked as (days × 8 hours_per_day)
+      - Call `updatePayrollItem(employeeId, 'hours_worked', calculatedHours)` to trigger recalculation
+    - _Bug_Condition: isBugCondition(input) where periodStart or periodEnd changes_
+    - _Expected_Behavior: Auto-update hours_worked based on date range, recalculate base_amount and total_amount_
+    - _Preservation: Preserve monthly_salary logic, do not affect manual field changes_
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 3.5_
+
+  - [x] 3.3 Handle edge cases
+    - If periodStart or periodEnd is empty, skip calculation
+    - If periodEnd is before periodStart, treat as 0 days
+    - If dates are the same, calculate as 1 day (inclusive)
+    - Ensure no crashes or errors with invalid date inputs
+    - _Bug_Condition: Edge cases where dates are invalid or unusual_
+    - _Expected_Behavior: Graceful handling without crashes_
+    - _Preservation: Does not affect existing error handling_
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+  - [x] 3.4 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Auto-Calculate on Date Change
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - Verify modal opens with calculated hours_worked based on default date range
+    - Verify Period End change triggers recalculation
+    - Verify Period Start change triggers recalculation
+    - Verify same-day range calculates 1 day correctly
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+  - [x] 3.5 Verify preservation tests still pass
+    - **Property 2: Preservation** - Manual Field Changes
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm manual hours_worked changes still recalculate correctly
+    - Confirm manual hourly_rate changes still recalculate correctly
+    - Confirm manual bonuses changes still recalculate correctly
+    - Confirm manual deductions changes still recalculate correctly
+    - Confirm monthly_salary employees still use monthly_salary as base_amount
+    - Confirm "Generate Payroll" button still creates records correctly
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
+
+- [x] 4. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+  - Verify no regressions in existing functionality
+  - Verify date-based auto-calculation works correctly
+  - Verify manual field changes still work as expected
+  - Verify monthly_salary employees are handled correctly
+  - Verify edge cases are handled gracefully

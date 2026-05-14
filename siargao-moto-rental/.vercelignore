@@ -1,0 +1,31 @@
+# Dependencies
+node_modules
+
+# Build cache
+.next
+
+# Environment files (will be added via Vercel CLI)
+.env.local
+.env*.local
+
+# Documentation
+*.md
+!README.md
+
+# SQL files
+*.sql
+
+# Batch files
+*.bat
+
+# IDE
+.vscode
+.idea
+
+# Git
+.git
+.gitignore
+
+# Logs
+*.log
+npm-debug.log*
