@@ -17,7 +17,7 @@ git add .
 echo.
 
 echo Committing changes...
-git commit -m "fix: improve logout functionality - properly clear session and redirect to landing page"
+git commit -m "fix: dashboard fleet status now reflects motorcycle status changes + improved logout"
 echo.
 
 echo Pushing to repository...

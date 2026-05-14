@@ -20,6 +20,8 @@ import { PesoIcon } from "@/components/icons/PesoIcon"
 interface DashboardStats {
   totalMotorbikes: number
   availableMotorbikes: number
+  rentedMotorbikes: number
+  maintenanceMotorbikes: number
   activeRentals: number
   totalRevenue: number
   activeEmployees: number
@@ -36,24 +38,57 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch motorbikes
-      const motorbikesRes = await fetch("/api/motorbikes")
+      // Add cache-busting timestamp to ensure fresh data
+      const timestamp = new Date().getTime()
+      
+      // Fetch motorbikes with cache-busting
+      const motorbikesRes = await fetch(`/api/motorbikes?t=${timestamp}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
+        },
+      })
       const motorbikesData = await motorbikesRes.json()
       const motorbikes = Array.isArray(motorbikesData) ? motorbikesData : []
 
+      console.log("=== DASHBOARD FETCH ===")
+      console.log("Motorcycles fetched:", motorbikes.length)
+      console.log("Motorcycle statuses:", motorbikes.map((m: any) => ({ 
+        brand: m.brand, 
+        model: m.model,
+        status: m.status 
+      })))
+
       // Fetch rentals
-      const rentalsRes = await fetch("/api/rentals")
+      const rentalsRes = await fetch(`/api/rentals?t=${timestamp}`, {
+        cache: "no-store",
+      })
       const rentalsData = await rentalsRes.json()
       const rentals = Array.isArray(rentalsData) ? rentalsData : []
 
       // Fetch employees
-      const employeesRes = await fetch("/api/employees")
+      const employeesRes = await fetch(`/api/employees?t=${timestamp}`, {
+        cache: "no-store",
+      })
       const employeesData = await employeesRes.json()
       const employees = Array.isArray(employeesData) ? employeesData : []
 
       const availableCount = motorbikes.filter(
         (m: any) => m.status === "available"
       ).length
+      const rentedCount = motorbikes.filter(
+        (m: any) => m.status === "rented"
+      ).length
+      const maintenanceCount = motorbikes.filter(
+        (m: any) => m.status === "maintenance"
+      ).length
+      
+      console.log("Fleet Status Counts:")
+      console.log("- Available:", availableCount)
+      console.log("- Rented:", rentedCount)
+      console.log("- Maintenance:", maintenanceCount)
+      
       const activeRentalsCount = rentals.filter(
         (r: any) => r.status === "active"
       ).length
@@ -62,12 +97,14 @@ export default function DashboardPage() {
         0
       )
       const activeEmployeesCount = employees.filter(
-        (e: any) => e.status === "Active"
+        (e: any) => e.status === "active"
       ).length
 
       setStats({
         totalMotorbikes: motorbikes.length,
         availableMotorbikes: availableCount,
+        rentedMotorbikes: rentedCount,
+        maintenanceMotorbikes: maintenanceCount,
         activeRentals: activeRentalsCount,
         totalRevenue,
         activeEmployees: activeEmployeesCount,
@@ -79,6 +116,8 @@ export default function DashboardPage() {
       setStats({
         totalMotorbikes: 0,
         availableMotorbikes: 0,
+        rentedMotorbikes: 0,
+        maintenanceMotorbikes: 0,
         activeRentals: 0,
         totalRevenue: 0,
         activeEmployees: 0,
@@ -356,7 +395,7 @@ export default function DashboardPage() {
                     {loading ? (
                       <Skeleton className="h-8 w-12" />
                     ) : (
-                      stats?.activeRentals || 0
+                      stats?.rentedMotorbikes || 0
                     )}
                   </div>
                 </div>
@@ -368,7 +407,11 @@ export default function DashboardPage() {
                     <AlertCircle className="w-5 h-5 text-red-500" />
                   </div>
                   <div className="text-2xl font-bold">
-                    {loading ? <Skeleton className="h-8 w-12" /> : 0}
+                    {loading ? (
+                      <Skeleton className="h-8 w-12" />
+                    ) : (
+                      stats?.maintenanceMotorbikes || 0
+                    )}
                   </div>
                 </div>
               </div>

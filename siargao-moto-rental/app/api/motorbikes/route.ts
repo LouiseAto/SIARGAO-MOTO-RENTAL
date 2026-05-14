@@ -13,7 +13,23 @@ export async function GET() {
     
     if (error) throw error
     
-    return NextResponse.json(data)
+    console.log("GET /api/motorbikes - Fetched motorcycles:", data.length)
+    console.log("Status breakdown:", {
+      available: data.filter((m: any) => m.status === "available").length,
+      rented: data.filter((m: any) => m.status === "rented").length,
+      maintenance: data.filter((m: any) => m.status === "maintenance").length,
+    })
+    
+    // Return with no-cache headers
+    return new NextResponse(JSON.stringify(data), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    })
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message },
